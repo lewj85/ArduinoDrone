@@ -12,7 +12,7 @@ Servo myservo4;
 // variables that store servo position for clockwise / counterclockwise motion
 int pos = 0;                // position
 int cpos = 180;             // counter position
-bool clockwise == true;     // initialize clockwise motion
+bool clockwise = true;      // initialize clockwise motion
 
 // variables that handle timer
 unsigned long previousMillis = 0;   // stores last time servos were updated
@@ -26,6 +26,8 @@ void setup()
   myservo2.attach(10);      // set servo 2 to pin 10
   myservo3.attach(11);      // set servo 3 to pin 11
   myservo4.attach(3);       // set servo 4 to pin 3
+  
+  Serial.begin(9600);
 } 
  
 
@@ -33,6 +35,8 @@ void setup()
 void loop() 
 { 
   unsigned long currentMillis = millis();   // updates each loop
+  Serial.print(currentMillis);
+  Serial.print('\n');
   
   
   // code that constantly runs goes here
@@ -68,9 +72,9 @@ void loop()
       myservo2.write(pos);  // move servo 2 to next position, counterclockwise
       myservo3.write(cpos); // move servo 3 to next position, clockwise
       myservo4.write(cpos); // move servo 4 to next position, clockwise
-      clockwise == false;   // set flag to move counterclockwise
+      clockwise = false;   // set flag to move counterclockwise
     }      
-    else // (clockwise == false && pos < 1)   // at 0 degrees
+    else if(clockwise == false && pos < 1)  // at 0 degrees
     {
       // sentinel value reached, reverse directions of pos and cpos
       pos++;                // update clockwise position
@@ -79,7 +83,7 @@ void loop()
       myservo2.write(pos);  // move servo 2 to next position, clockwise
       myservo3.write(cpos); // move servo 3 to next position, counterclockwise
       myservo4.write(cpos); // move servo 4 to next position, counterclockwise
-      clockwise == true;    // set flag to move clockwise
+      clockwise = true;    // set flag to move clockwise
     }
   }
 }
