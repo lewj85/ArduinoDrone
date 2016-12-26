@@ -39,12 +39,13 @@ void loop()
   unsigned long currentMillis = millis();   // updates each loop
   //Serial.print(currentMillis);  
   
+  // run once, at start
   if(turnON = true)
   {
     delay(1000);
-    aux1.write(100);   // turn aux1 on with value: 55
+    aux1.write(110);   // turn aux1 on with value 55, off with 110
     delay(1000);
-    aux2.write(129);   // turn aux2 (the motors) on
+    aux2.write(129);   // turn aux2 on (unlock motors)
     delay(2000);
 
     // acceptable values: 33-152, middle: 93 
@@ -88,12 +89,13 @@ void loop()
     turnON = false;
   }
   
+  
   // code that constantly runs goes here
   
   
-  // if the interval time (15ms) is reached, update servos
+  // if the interval time is reached, do something
   if(currentMillis - previousMillis >= interval)
   {
-   
+    // code that runs every set interval goes here
   }
 }
