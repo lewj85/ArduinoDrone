@@ -1,4 +1,4 @@
-// Sweep4Millis
+// Servo Drone 1
 // by Jesse Lew
 
 #include <Servo.h> 

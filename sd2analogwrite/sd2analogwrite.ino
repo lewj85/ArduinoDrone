@@ -1,4 +1,4 @@
-// Test 4 Channels at 128PWM
+// Convert servodrone2 to analogWrite()
 // by Jesse Lew
 
 // tie each channel to pin on arduino

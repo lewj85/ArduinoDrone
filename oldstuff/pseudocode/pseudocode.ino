@@ -1,4 +1,5 @@
-
+// general layout of balanced flight program
+// by Jesse Lew
 
 int main()
 {
