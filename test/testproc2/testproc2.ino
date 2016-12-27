@@ -1,4 +1,4 @@
-// Basic Drone with IMU
+// Test Procedures 2
 // by Jesse Lew
 
 #include <Servo.h> 
@@ -24,9 +24,10 @@ Servo pitch;
 Servo yaw;
 Servo throttle;
 
-// initialize counter and boolean logic
+// initialize counter and procedures
 long int cpt = 0;
-bool turnON = true;
+bool startupProc = true;
+bool testProc = true;
 
 // variables that handle timer
 unsigned long previousMillis = 0;   // stores last time servos were updated
@@ -46,7 +47,9 @@ void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data)
   Wire.requestFrom(Address, Nbytes); 
   uint8_t index=0;
   while (Wire.available())
+  {
     Data[index++]=Wire.read();
+  }
 }
  
  
@@ -65,12 +68,15 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
 void setup() 
 { 
   // can add min/max values with attach(pin#, min#, max#)
-  aux1.attach(5);      // set AUX1 to pin 5
-  aux2.attach(6);      // set AUX2 to pin 6
+  aux1.attach(5);      // set AUX1 (leveler) to pin 5
+  aux2.attach(6);      // set AUX2 (motor lock) to pin 6
   roll.attach(11);     // set roll to pin 11
   pitch.attach(9);     // set pitch 2 to pin 9
   yaw.attach(10);      // set yaw to pin 10
   throttle.attach(3);  // set throttle to pin 3
+  
+  // on/off ARM/level switch
+  pinMode(13, INPUT);
   
   // Arduino initializations
   Wire.begin();
@@ -88,25 +94,77 @@ void loop()
 { 
   unsigned long currentMillis = millis();   // updates each loop
   //Serial.print(currentMillis);  
-  
-  // run once, at start
-  if(turnON == true)
-  {
-    delay(1000);
-    aux1.write(1500);  // turn aux1 on with 1100
-    delay(1000);
-    aux2.write(1900);   // turn aux2 on (unlock motors) with 1900
-    delay(2000);
 
-    // acceptable values: 885-2115, 
-    // keeping between 1000-2000
-    roll.write(1500);      // initialize center
-    pitch.write(1500);     // initialize center
-    yaw.write(1500);       // initialize center
-    delay(1000);
-    throttle.write(1000);  // minimum throttle
+  // if the on/off switch is on
+  if(digitalRead(13) == HIGH)
+  {
+    // run startup procedure once
+    if(startupProc == true)
+    {
+      delay(1000);
+      aux1.write(1100);   // turn aux1 (leveler) on with 1100
+      aux2.write(1900);   // turn aux2 (motor lock) on with 1900
+      delay(1500);
+  
+      // acceptable values: 885-2115, 
+      // keeping between 1000-2000
+      roll.write(1500);      // initialize center
+      pitch.write(1500);     // initialize center
+      yaw.write(1500);       // initialize center
+      delay(1000);
+      throttle.write(1000);  // minimum throttle
+      
+      startupProc = false;
+    }
     
-    turnON = false;
+    if(testProc == true)
+    {
+      // test values
+      delay(2000);
+      throttle.write(1250);  // 25% throttle
+      delay(1000);    
+      throttle.write(1500);  // 50% throttle
+      delay(1000);    
+      throttle.write(1750);  // 75% throttle
+      delay(1000);    
+      //throttle.write(2000);  // 100% throttle
+      //delay(1000);
+      throttle.write(1600);  // 60% throttle
+      delay(1000);
+      roll.write(1350);      // roll left
+      delay(400);
+      roll.write(1500);      // center
+      delay(400);
+      roll.write(1650);      // roll right
+      delay(400);
+      roll.write(1500);      // center
+      delay(1000);
+      pitch.write(1350);     // pitch back
+      delay(400);
+      roll.write(1500);      // center
+      delay(500);
+      pitch.write(1650);     // pitch forward
+      delay(400);
+      pitch.write(1500);     // center
+      delay(1000);
+      yaw.write(1350);       // spin left
+      delay(400);
+      roll.write(1500);      // center
+      delay(400);
+      yaw.write(1650);       // spin right
+      delay(400);
+      yaw.write(1500);       // center
+      delay(1000);
+      throttle.write(1000);  // minimum throttle
+    
+      testProc = false;
+    }
+  }
+  else
+  {
+    throttle.write(1000);  // bring throttle to minimum
+    aux2.write(1100);      // lock motors
+    startupProc = true;    // reset startup procedure flag
   }
     
   // code that constantly runs before interval goes here 
