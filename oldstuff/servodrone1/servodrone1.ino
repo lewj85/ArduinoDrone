@@ -41,7 +41,7 @@ void loop()
 //  Serial.print('\n');
   
   
-  if(turnON = true)
+  if(turnON == true)
   {
     aux1.write(100);  // turn aux1 on with value: 55
     aux2.write(129);  // turn aux2 (the motors) on

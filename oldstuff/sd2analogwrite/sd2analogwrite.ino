@@ -17,7 +17,7 @@ void setup()
 
 void loop() 
 {  
-  if(turnON = true)
+  if(turnON == true)
   {
     // unlock motors
     delay(2000);

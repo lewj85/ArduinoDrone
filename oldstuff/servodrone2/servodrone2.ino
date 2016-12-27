@@ -40,7 +40,7 @@ void loop()
   //Serial.print(currentMillis);  
   
   // run once, at start
-  if(turnON = true)
+  if(turnON == true)
   {
     delay(1000);
     aux1.write(110);   // turn aux1 on with value 55, off with 110
