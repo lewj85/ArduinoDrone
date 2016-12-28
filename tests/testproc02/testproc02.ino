@@ -1,6 +1,9 @@
 // Test Procedures 2
 // by Jesse Lew
 
+// Notes: More clear now. Upped throttle to 60% to attempt flight.
+// Pitch getting stuck on back? Next test will investigate.
+
 #include <Servo.h> 
 #include <Wire.h> 
  

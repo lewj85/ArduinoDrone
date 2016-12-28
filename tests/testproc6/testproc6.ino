@@ -1,5 +1,9 @@
-// Test Procedures 1
+// Test Procedures 6
 // by Jesse Lew
+
+// Notes: ~63% throttle appears to stabilize altitude. ~65% 
+// needed to give it lift. Center of gravity is pulling it back
+// so re-centering pitch to 1515 to compensate.
 
 #include <Servo.h> 
 #include <Wire.h> 
@@ -109,10 +113,11 @@ void loop()
       // acceptable values: 885-2115, 
       // keeping between 1000-2000
       roll.write(1500);      // initialize center
-      pitch.write(1500);     // initialize center
+      pitch.write(1515);     // initialize center
       yaw.write(1500);       // initialize center
       delay(1000);
       throttle.write(1000);  // minimum throttle
+      delay(1000);
       
       startupProc = false;
     }
@@ -121,36 +126,26 @@ void loop()
     {
       // test values
       delay(2000);
-      throttle.write(1250);  // 25% throttle
-      delay(1000);    
-      throttle.write(1500);  // 50% throttle
-      delay(1000);    
-      throttle.write(1750);  // 75% throttle
-      delay(1000);    
-      //throttle.write(2000);  // 100% throttle
-      //delay(1000);
-      throttle.write(1500);  // 50% throttle
-      delay(1000);
-      roll.write(1400);      // roll left
-      delay(250);
-      roll.write(1600);      // roll right
-      delay(250);
-      roll.write(1500);      // center
-      delay(1000);
-      pitch.write(1400);     // pitch forward (went back)
-      delay(250);
-      pitch.write(1600);     // pitch back (went forward)
-      delay(250);
-      pitch.write(1500);     // center
-      delay(1000);
-      yaw.write(1400);       // spin left
-      delay(250);
-      yaw.write(1600);       // spin right
-      delay(250);
-      yaw.write(1500);       // center
+      throttle.write(1000);  // minimum throttle
+      delay(2000);
+      throttle.write(1630);  // 63% throttle
+      delay(2000);
+      throttle.write(1000);  // minimum throttle
+      delay(2000);
+      throttle.write(1650);  // 65% throttle
+      delay(3000);
+      throttle.write(1640);  // 64% throttle
+      delay(2000);
+      throttle.write(1630);  // 63% throttle
+      delay(2000);
+      throttle.write(1620);  // 62% throttle
+      delay(2000);
+      throttle.write(1610);  // 61% throttle
+      delay(2000);
+
       delay(1000);
       throttle.write(1000);  // minimum throttle
-    
+
       testProc = false;
     }
   }
