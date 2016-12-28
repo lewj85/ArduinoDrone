@@ -5,17 +5,22 @@
 
 #include <Servo.h> 
 #include <Wire.h> 
- 
+#include <StandardCplusplus.h>
+#include <iostream>
+
+using namespace std;
+
+
 #define    MPU9250_ADDRESS            0x68
 
-#define    GYRO_FULL_SCALE_250_DPS    0x00  
-#define    GYRO_FULL_SCALE_500_DPS    0x08
-#define    GYRO_FULL_SCALE_1000_DPS   0x10
+//#define    GYRO_FULL_SCALE_250_DPS    0x00  
+//#define    GYRO_FULL_SCALE_500_DPS    0x08
+//#define    GYRO_FULL_SCALE_1000_DPS   0x10
 #define    GYRO_FULL_SCALE_2000_DPS   0x18
  
-#define    ACC_FULL_SCALE_2_G         0x00  
-#define    ACC_FULL_SCALE_4_G         0x08
-#define    ACC_FULL_SCALE_8_G         0x10
+//#define    ACC_FULL_SCALE_2_G         0x00  
+//#define    ACC_FULL_SCALE_4_G         0x08
+//#define    ACC_FULL_SCALE_8_G         0x10
 #define    ACC_FULL_SCALE_16_G        0x18
 
 // create 4 servo objects (max 8 can be created) 
@@ -30,12 +35,19 @@ Servo throttle;
 long int cpt = 0;
 bool startupProc = true;
 bool testProc = true;
+bool testFileOpened = false;
+
+// initialize test.txt variables and 
+int txtRoll;
+int txtPitch;
+int txtYaw;
+int txtThrottle;
+unsigned long previousMillis2 = 0;
+long interval2 = 0;  // timer value when reading lines off .txt
 
 // variables that handle timer
 unsigned long previousMillis1 = 0;   // stores last time servos were updated
-unsigned long previousMillis2 = 0;
 const long interval1 = 50;   // set timer interval (ms)
-long interval2;  // used as delay() when reading lines off .txt
 
 // This function read Nbytes bytes from I2C device at address Address. 
 // Put read bytes starting at register Register in the Data array. 
@@ -126,13 +138,38 @@ void loop()
     if(testProc == true)
     {
       // load test values from "test.txt"
-      // file open code goes here. read lines using timer
-      // if(currentMillis2 - previousMillis2 >= interval2)
-      // read the next 2 lines
-      // 1. flight instruction
-      // 2. update interval2 (pull 'delay' value)
+      if(testFileOpened == false)
+      {
+        ifstream testFile;
+        testFile.open("test.txt");
+        testFileOpened == true;
+      }
       
-      //if end of file
+      // if you haven't reached the end of the file
+      if(!fin.eof())
+      {
+        // read next set of instructions after every set interval
+        if(currentMillis2 - previousMillis2 >= interval2)
+        {
+          // read instructions
+          getline(int(fin), txtRoll);
+          getline(int(fin), txtPitch);
+          getline(int(fin), txtYaw);
+          getline(int(fin), txtThrottle);
+          getline(int(fin), interval2);
+          
+          // write instructions
+          roll.write(txtRoll);
+          pitch.write(txtPitch);
+          yaw.write(txtYaw);
+          throttle.write(txtThrottle);
+        }
+      }
+      else
+      {
+        testFile.close();
+      }
+      
       delay(1000);
       throttle.write(1000);  // minimum throttle
       testProc = false;
