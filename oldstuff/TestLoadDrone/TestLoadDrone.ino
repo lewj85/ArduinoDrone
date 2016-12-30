@@ -1,12 +1,14 @@
 // Test Load Drone - loads test flight plan from test.txt
 // by Jesse Lew
 
-// Notes: Pitch centered at 1515.
+// Notes: Pitch centered at 1515. The standard library was included for fstream
+// functions, but it is not working properly. I'm thinking of getting a shield
+// with an SD card slot and using myFile = SD.open("test.txt"), myFile.read().
 
 #include <Servo.h> 
-#include <Wire.h> 
+#include <Wire.h>
 #include <StandardCplusplus.h>
-#include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -104,7 +106,7 @@ void setup()
 } 
  
 
-// servo rotate loop. uses 15ms timer to count down to next servo instruction
+// main loop
 void loop() 
 { 
   unsigned long currentMillis1 = millis();   // updates each loop
@@ -137,10 +139,11 @@ void loop()
     // run test procedure once
     if(testProc == true)
     {
+      ifstream testFile;
+      
       // load test values from "test.txt"
       if(testFileOpened == false)
       {
-        ifstream testFile;
         testFile.open("test.txt");
         testFileOpened == true;
       }

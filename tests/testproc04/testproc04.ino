@@ -92,7 +92,7 @@ void setup()
 } 
  
 
-// servo rotate loop. uses 15ms timer to count down to next servo instruction
+// main loop
 void loop() 
 { 
   unsigned long currentMillis = millis();   // updates each loop

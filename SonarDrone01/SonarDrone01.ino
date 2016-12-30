@@ -1,31 +1,37 @@
-// Test Procedures 5
+// Test Sonar 1
 // by Jesse Lew
 
-// Notes: 60% throttle was barely enough to get it airborne 
-// last time so trying different 60+% values.
+// Notes: 62% descent, 63% hold, 64% climb. COG: roll 1495, 
+// pitch 1513, yaw 1500. 
 
 #include <Servo.h> 
 #include <Wire.h> 
  
 #define    MPU9250_ADDRESS            0x68
 
-#define    GYRO_FULL_SCALE_250_DPS    0x00  
-#define    GYRO_FULL_SCALE_500_DPS    0x08
-#define    GYRO_FULL_SCALE_1000_DPS   0x10
+//#define    GYRO_FULL_SCALE_250_DPS    0x00  
+//#define    GYRO_FULL_SCALE_500_DPS    0x08
+//#define    GYRO_FULL_SCALE_1000_DPS   0x10
 #define    GYRO_FULL_SCALE_2000_DPS   0x18
  
-#define    ACC_FULL_SCALE_2_G         0x00  
-#define    ACC_FULL_SCALE_4_G         0x08
-#define    ACC_FULL_SCALE_8_G         0x10
+//#define    ACC_FULL_SCALE_2_G         0x00  
+//#define    ACC_FULL_SCALE_4_G         0x08
+//#define    ACC_FULL_SCALE_8_G         0x10
 #define    ACC_FULL_SCALE_16_G        0x18
 
-// create 4 servo objects (max 8 can be created) 
+// create 6 servo objects (max 8 can be created) 
 Servo aux1;
 Servo aux2;
 Servo roll;
 Servo pitch;
 Servo yaw;
 Servo throttle;
+
+// declare value variables - initialized in startup procedures
+int rollVal;
+int pitchVal;
+int yawVal;
+int throttleVal;
 
 // initialize counter and procedures
 long int cpt = 0;
@@ -35,6 +41,45 @@ bool testProc = true;
 // variables that handle timer
 unsigned long previousMillis = 0;   // stores last time servos were updated
 const long interval = 50;   // set timer interval (ms)
+
+// sonar pins/variables
+const int trigPin = 7;
+const int echoPin = 8;
+int altitude;
+int newAltitude;
+
+
+// sonar function 
+int getDistance() 
+{
+  long duration;        // duration of the ping 
+  long centimeters;     // distance in cm
+
+  // the sensor is triggered by a HIGH pulse of 10 or more microseconds
+  // so give a short LOW pulse beforehand to ensure a clean HIGH pulse
+  pinMode(trigPin, OUTPUT);
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // record duration (in microseconds) of the HIGH pulse from 
+  // the moment the ping is sent to the moment its echo is received
+  pinMode(echoPin, INPUT);
+  duration = pulseIn(echoPin, HIGH);
+
+  // speed of sound is 29 microseconds per centimeter
+  // the ping travels out and back so divide distance by 2
+  centimeters = duration / 29 / 2;
+
+  // display distance
+  //Serial.print(centimeters);
+  //Serial.print("cm");
+  //Serial.println();
+
+  return centimeters;
+}
 
 
 // This function read Nbytes bytes from I2C device at address Address. 
@@ -67,7 +112,8 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
 }
 
 
-// set servos to arduino pins
+// SETUP
+// set arduino pins
 void setup() 
 { 
   // can add min/max values with attach(pin#, min#, max#)
@@ -92,7 +138,7 @@ void setup()
 } 
  
 
-// main loop
+// MAIN LOOP
 void loop() 
 { 
   unsigned long currentMillis = millis();   // updates each loop
@@ -102,48 +148,37 @@ void loop()
   if(digitalRead(13) == HIGH)
   {
     // run startup procedure once
+    // STARTUP PROCEDURES
     if(startupProc == true)
     {
       delay(1000);
       aux1.write(1100);   // turn aux1 (leveler) on with 1100
       aux2.write(1900);   // turn aux2 (motor lock) on with 1900
-      delay(1500);
+      delay(2000);
   
-      // acceptable values: 885-2115, 
-      // keeping between 1000-2000
-      roll.write(1500);      // initialize center
-      pitch.write(1500);     // initialize center
-      yaw.write(1500);       // initialize center
+      // acceptable values: 885-2115 
+      // keeping between: 1000-2000
+      rollVal = 1495;
+      pitchVal = 1513;
+      yawVal = 1500;
+      throttleVal = 1000;      // minimum throttle
+
+      throttle.write(throttleVal);  // minimum throttle
       delay(1000);
-      throttle.write(1000);  // minimum throttle
+      roll.write(rollVal);     // initialize center
+      pitch.write(pitchVal);   // initialize center
+      yaw.write(yawVal);       // initialize center
       delay(1000);
       
       startupProc = false;
     }
     
+    // TEST PROCEDURES
     if(testProc == true)
     {
       // test values
-      delay(2000);
-      throttle.write(1000);  // minimum throttle
-      delay(2000);
-      throttle.write(1600);  // 60% throttle
-      delay(2000);
-      throttle.write(1000);  // minimum throttle
-      delay(2000);
-      throttle.write(1620);  // 62% throttle
-      delay(2000);
-      throttle.write(1000);  // minimum throttle
-      delay(2000);
+      delay(4000);
       throttle.write(1640);  // 64% throttle
-      delay(2000);
-      throttle.write(1640);  // 62% throttle
-      delay(2000);
-      throttle.write(1640);  // 60% throttle
-      delay(2000);
-
-      delay(1000);
-      throttle.write(1000);  // minimum throttle
 
       testProc = false;
     }
@@ -160,9 +195,41 @@ void loop()
   // if the interval time is reached, do something
   if(currentMillis - previousMillis >= interval)
   {
+    // get altitude from sonar
+    newAltitude = getDistance();
+    
+    // if newAltitude is within 5cm of old value, update altitude
+    // else ignore the bad read (do not update altitude)
+    if((newAltitude - altitude) > -5 && (newAltitude - altitude) < 5)
+    {
+      altitude = newAltitude;
+    }
+    
+    // display distance
+    Serial.print(altitude);
+    Serial.print("cm");
+    Serial.println();
+    
+    // if altitude == 15 cm, don't do anything
+    if(altitude == 15)
+    {
+    }
+    // else if altitude < 15 cm, increase throttle incrementally
+    else if(altitude < 15)
+    {
+      throttleVal++;
+      throttle.write(throttleVal);
+    }
+    // else if altitude > 15 cm, decrease throttle incrementally
+    else if(altitude > 15)
+    {
+      throttleVal--;
+      throttle.write(throttleVal);
+    }
+    
     // Display data counter
-    Serial.print (cpt++,DEC);
-    Serial.print ("\t");
+    //Serial.print (cpt++,DEC);
+    //Serial.print ("\t");
    
     // Read accelerometer and gyroscope
     uint8_t Buf[14];
@@ -185,29 +252,29 @@ void loop()
     // Display values
     
     // Accelerometer
-    Serial.print ("aX\t");
-    Serial.print (ax,DEC); 
-    Serial.print ("\t");
-    Serial.print ("aY\t");
-    Serial.print (ay,DEC);
-    Serial.print ("\t");
-    Serial.print ("aZ\t");
-    Serial.print (az,DEC);  
-    Serial.print ("\t");
+    //Serial.print ("aX\t");
+    //Serial.print (ax,DEC); 
+    //Serial.print ("\t");
+    //Serial.print ("aY\t");
+    //Serial.print (ay,DEC);
+    //Serial.print ("\t");
+    //Serial.print ("aZ\t");
+    //Serial.print (az,DEC);  
+    //Serial.print ("\t");
    
     // Gyroscope
-    Serial.print ("gX\t");
-    Serial.print (gx,DEC); 
-    Serial.print ("\t");
-    Serial.print ("gY\t");
-    Serial.print (gy,DEC);
-    Serial.print ("\t");
-    Serial.print ("gZ\t");
-    Serial.print (gz,DEC);  
-    Serial.print ("\t");
+    //Serial.print ("gX\t");
+    //Serial.print (gx,DEC); 
+    //Serial.print ("\t");
+    //Serial.print ("gY\t");
+    //Serial.print (gy,DEC);
+    //Serial.print ("\t");
+    //Serial.print ("gZ\t");
+    //Serial.print (gz,DEC);  
+    //Serial.print ("\t");
   
     // End of line
-    Serial.println("");
+    //Serial.println("");
   }
   
   // code that constantly runs after interval goes here 

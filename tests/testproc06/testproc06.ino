@@ -2,8 +2,10 @@
 // by Jesse Lew
 
 // Notes: ~63% throttle appears to stabilize altitude. ~65% 
-// needed to give it lift. Center of gravity is pulling it back
-// so re-centering pitch to 1515 to compensate.
+// lifts it fast, try 64%. 61% lowers it fast. Try 62%. Center 
+// of gravity is pulling it back at 1500, forward at 1515, and
+// slightly right at 1500. Try pitch.write(1513) and 
+// roll.write(1495).
 
 #include <Servo.h> 
 #include <Wire.h> 
@@ -93,7 +95,7 @@ void setup()
 } 
  
 
-// servo rotate loop. uses 15ms timer to count down to next servo instruction
+// main loop
 void loop() 
 { 
   unsigned long currentMillis = millis();   // updates each loop
@@ -128,18 +130,12 @@ void loop()
       delay(2000);
       throttle.write(1000);  // minimum throttle
       delay(2000);
-      throttle.write(1630);  // 63% throttle
-      delay(2000);
-      throttle.write(1000);  // minimum throttle
-      delay(2000);
       throttle.write(1650);  // 65% throttle
-      delay(3000);
-      throttle.write(1640);  // 64% throttle
-      delay(2000);
+      delay(4000);
+      throttle.write(1610);  // 61% throttle
+      delay(1000);
       throttle.write(1630);  // 63% throttle
-      delay(2000);
-      throttle.write(1620);  // 62% throttle
-      delay(2000);
+      delay(4000);
       throttle.write(1610);  // 61% throttle
       delay(2000);
 
