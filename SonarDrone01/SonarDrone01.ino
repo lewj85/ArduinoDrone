@@ -1,22 +1,21 @@
 // Test Sonar 1
 // by Jesse Lew
 
-// Notes: 62% descent, 63% hold, 64% climb. COG: roll 1495, 
-// pitch 1513, yaw 1500. 
+// Notes: 62% descent, 63% hold, 64% climb. COG pitch 1515
 
 #include <Servo.h> 
 #include <Wire.h> 
  
 #define    MPU9250_ADDRESS            0x68
 
-//#define    GYRO_FULL_SCALE_250_DPS    0x00  
-//#define    GYRO_FULL_SCALE_500_DPS    0x08
-//#define    GYRO_FULL_SCALE_1000_DPS   0x10
+#define    GYRO_FULL_SCALE_250_DPS    0x00  
+#define    GYRO_FULL_SCALE_500_DPS    0x08
+#define    GYRO_FULL_SCALE_1000_DPS   0x10
 #define    GYRO_FULL_SCALE_2000_DPS   0x18
  
-//#define    ACC_FULL_SCALE_2_G         0x00  
-//#define    ACC_FULL_SCALE_4_G         0x08
-//#define    ACC_FULL_SCALE_8_G         0x10
+#define    ACC_FULL_SCALE_2_G         0x00  
+#define    ACC_FULL_SCALE_4_G         0x08
+#define    ACC_FULL_SCALE_8_G         0x10
 #define    ACC_FULL_SCALE_16_G        0x18
 
 // create 6 servo objects (max 8 can be created) 
@@ -39,7 +38,8 @@ bool startupProc = true;
 bool testProc = true;
 
 // variables that handle timer
-unsigned long previousMillis = 0;   // stores last time servos were updated
+unsigned long currentMillis = 0;    // initialize timer
+unsigned long previousMillis = 0;   // stores last timer
 const long interval = 50;   // set timer interval (ms)
 
 // sonar pins/variables
@@ -79,6 +79,15 @@ int getDistance()
   //Serial.println();
 
   return centimeters;
+}
+
+
+void shutdownProc()
+{
+    //throttle.write(1000);  // bring throttle to minimum
+    aux2.write(1100);      // lock motors
+    //Serial.print("motors should be locked now");
+    startupProc = true;    // reset startup procedure flag
 }
 
 
@@ -141,34 +150,49 @@ void setup()
 // MAIN LOOP
 void loop() 
 { 
-  unsigned long currentMillis = millis();   // updates each loop
-  //Serial.print(currentMillis);  
+  currentMillis = millis();   // updates each loop
+  //Serial.print(currentMillis);
 
   // if the on/off switch is on
   if(digitalRead(13) == HIGH)
   {
     // run startup procedure once
     // STARTUP PROCEDURES
+    //Serial.print("made it to startup proc");
     if(startupProc == true)
     {
+      Serial.print("Startup initiated.");
+      Serial.println("");
       delay(1000);
+      Serial.print("Setting Aux1.");
+      Serial.println("");
       aux1.write(1100);   // turn aux1 (leveler) on with 1100
-      aux2.write(1900);   // turn aux2 (motor lock) on with 1900
-      delay(2000);
+      delay(1000);
   
       // acceptable values: 885-2115 
       // keeping between: 1000-2000
-      rollVal = 1495;
-      pitchVal = 1513;
-      yawVal = 1500;
+      Serial.print("Setting initial values to roll, pitch, yaw, throttle.");
+      Serial.println("");
+      rollVal = 1500;          // set starting roll
+      pitchVal = 1515;         // set starting pitch
+      yawVal = 1500;           // set starting yaw
       throttleVal = 1000;      // minimum throttle
+      altitude = 2;            // set altitude
+      delay(500);
 
+      Serial.print("Writing those values now.");
+      Serial.println("");
+      roll.write(rollVal);     // initialize drone
+      pitch.write(pitchVal);   // initialize drone
+      yaw.write(yawVal);       // initialize drone
       throttle.write(throttleVal);  // minimum throttle
-      delay(1000);
-      roll.write(rollVal);     // initialize center
-      pitch.write(pitchVal);   // initialize center
-      yaw.write(yawVal);       // initialize center
-      delay(1000);
+      delay(2000);
+      
+      // unlocking motors
+      Serial.print("Unlocking motors now.");
+      Serial.println("");
+      aux2.write(1900);   // turn aux2 (motor lock) off with 1900
+      delay(2000);
       
       startupProc = false;
     }
@@ -176,107 +200,118 @@ void loop()
     // TEST PROCEDURES
     if(testProc == true)
     {
+      Serial.print("Starting test procedure.");
+      Serial.println("");
       // test values
-      delay(4000);
-      throttle.write(1640);  // 64% throttle
+      delay(1000);
+      throttleVal = 1850;
+      throttle.write(throttleVal);  // 85% throttle
 
       testProc = false;
+    }
+    
+    // if the interval time is reached, do something
+    if((currentMillis - previousMillis) >= interval)
+    {
+      // get altitude from sonar
+      newAltitude = getDistance();
+      Serial.print("the newAltitude is: ");
+      Serial.print(newAltitude);
+      
+      // if newAltitude is within 5cm of old value, update altitude
+      // else ignore the bad read (do not update altitude)
+      if((newAltitude - altitude) > -5 && (newAltitude - altitude) < 5)
+      {
+        altitude = newAltitude;
+        Serial.print("altitude set to: ");
+        Serial.println(altitude);
+      }
+      
+      // display distance
+      Serial.print(altitude);
+      Serial.print("cm");
+      Serial.println();
+      
+      // if altitude == 15 cm, don't do anything
+      if(altitude == 15)
+      {
+      }
+      // else if altitude < 15 cm, increase throttle incrementally
+      else if(altitude < 15 && throttleVal < 2000)
+      {
+        throttleVal++;
+        throttle.write(throttleVal);
+        Serial.print("should be increasing. throttleVal = ");
+        Serial.print(throttleVal);
+      }
+      // else if altitude > 15 cm, decrease throttle incrementally
+      else if(altitude > 15 && throttleVal > 1000)
+      {
+        throttleVal--;
+        throttle.write(throttleVal);
+      }
+      
+      // Display data counter
+      //Serial.print (cpt++,DEC);
+      //Serial.print ("\t");
+     
+      // Read accelerometer and gyroscope
+      uint8_t Buf[14];
+      I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
+     
+     
+      // Create 16 bits values from 8 bits data
+     
+      // Accelerometer
+      int16_t ax=-(Buf[8]<<8 | Buf[9]);
+      int16_t ay=-(Buf[10]<<8 | Buf[11]);
+      int16_t az=Buf[12]<<8 | Buf[13];
+     
+      // Gyroscope
+      int16_t gx=-(Buf[0]<<8 | Buf[1]);
+      int16_t gy=-(Buf[2]<<8 | Buf[3]);
+      int16_t gz=Buf[4]<<8 | Buf[5];
+    
+     
+      // Display values
+      
+      // Accelerometer
+      //Serial.print ("aX\t");
+      //Serial.print (ax,DEC); 
+      //Serial.print ("\t");
+      //Serial.print ("aY\t");
+      //Serial.print (ay,DEC);
+      //Serial.print ("\t");
+      //Serial.print ("aZ\t");
+      //Serial.print (az,DEC);  
+      //Serial.print ("\t");
+     
+      // Gyroscope
+      //Serial.print ("gX\t");
+      //Serial.print (gx,DEC); 
+      //Serial.print ("\t");
+      //Serial.print ("gY\t");
+      //Serial.print (gy,DEC);
+      //Serial.print ("\t");
+      //Serial.print ("gZ\t");
+      //Serial.print (gz,DEC);  
+      //Serial.print ("\t");
+    
+      // End of line
+      //Serial.println("");
     }
   }
   else
   {
-    throttle.write(1000);  // bring throttle to minimum
-    aux2.write(1100);      // lock motors
-    startupProc = true;    // reset startup procedure flag
+    shutdownProc();
   }
     
   // code that constantly runs before interval goes here 
   
-  // if the interval time is reached, do something
-  if(currentMillis - previousMillis >= interval)
+  // min throttle after 20 seconds
+  if(currentMillis > 20000)
   {
-    // get altitude from sonar
-    newAltitude = getDistance();
-    
-    // if newAltitude is within 5cm of old value, update altitude
-    // else ignore the bad read (do not update altitude)
-    if((newAltitude - altitude) > -5 && (newAltitude - altitude) < 5)
-    {
-      altitude = newAltitude;
-    }
-    
-    // display distance
-    Serial.print(altitude);
-    Serial.print("cm");
-    Serial.println();
-    
-    // if altitude == 15 cm, don't do anything
-    if(altitude == 15)
-    {
-    }
-    // else if altitude < 15 cm, increase throttle incrementally
-    else if(altitude < 15)
-    {
-      throttleVal++;
-      throttle.write(throttleVal);
-    }
-    // else if altitude > 15 cm, decrease throttle incrementally
-    else if(altitude > 15)
-    {
-      throttleVal--;
-      throttle.write(throttleVal);
-    }
-    
-    // Display data counter
-    //Serial.print (cpt++,DEC);
-    //Serial.print ("\t");
-   
-    // Read accelerometer and gyroscope
-    uint8_t Buf[14];
-    I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
-   
-   
-    // Create 16 bits values from 8 bits data
-   
-    // Accelerometer
-    int16_t ax=-(Buf[8]<<8 | Buf[9]);
-    int16_t ay=-(Buf[10]<<8 | Buf[11]);
-    int16_t az=Buf[12]<<8 | Buf[13];
-   
-    // Gyroscope
-    int16_t gx=-(Buf[0]<<8 | Buf[1]);
-    int16_t gy=-(Buf[2]<<8 | Buf[3]);
-    int16_t gz=Buf[4]<<8 | Buf[5];
-  
-   
-    // Display values
-    
-    // Accelerometer
-    //Serial.print ("aX\t");
-    //Serial.print (ax,DEC); 
-    //Serial.print ("\t");
-    //Serial.print ("aY\t");
-    //Serial.print (ay,DEC);
-    //Serial.print ("\t");
-    //Serial.print ("aZ\t");
-    //Serial.print (az,DEC);  
-    //Serial.print ("\t");
-   
-    // Gyroscope
-    //Serial.print ("gX\t");
-    //Serial.print (gx,DEC); 
-    //Serial.print ("\t");
-    //Serial.print ("gY\t");
-    //Serial.print (gy,DEC);
-    //Serial.print ("\t");
-    //Serial.print ("gZ\t");
-    //Serial.print (gz,DEC);  
-    //Serial.print ("\t");
-  
-    // End of line
-    //Serial.println("");
+    shutdownProc();
+    Serial.print ("You're not supposed to read for 20 seconds");
   }
-  
-  // code that constantly runs after interval goes here 
-
 }
