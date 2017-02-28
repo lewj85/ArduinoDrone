@@ -1,8 +1,8 @@
-// Test Procedures 7
+// Test Procedures 2
 // by Jesse Lew
 
-// Notes: 80% initial throttle for a fast take-off and stable 
-// flight while tied down.
+// Notes: More clear now. Upped throttle to 60% to attempt flight.
+// Pitch getting stuck on back? Next test will investigate.
 
 #include <Servo.h> 
 #include <Wire.h> 
@@ -19,7 +19,7 @@
 #define    ACC_FULL_SCALE_8_G         0x10
 #define    ACC_FULL_SCALE_16_G        0x18
 
-// create 4 controller objects and 2 aux (max 8 can be created) 
+// create 4 servo objects (max 8 can be created) 
 Servo aux1;
 Servo aux2;
 Servo roll;
@@ -48,10 +48,10 @@ void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data)
  
   // Read Nbytes
   Wire.requestFrom(Address, Nbytes); 
-  uint8_t index = 0;
+  uint8_t index=0;
   while (Wire.available())
   {
-    Data[index++] = Wire.read();
+    Data[index++]=Wire.read();
   }
 }
  
@@ -104,57 +104,62 @@ void loop()
     // run startup procedure once
     if(startupProc == true)
     {
-      Serial.print("Startup initiated.");
-      Serial.println("");
-      delay(1000); 
-      Serial.print("Setting Aux1.");
-      Serial.println("");
-      aux1.write(1100);   // turn aux1 (leveler) on with 1100
       delay(1000);
+      aux1.write(1100);   // turn aux1 (leveler) on with 1100
+      aux2.write(1900);   // turn aux2 (motor lock) on with 1900
+      delay(1500);
   
       // acceptable values: 885-2115, 
       // keeping between 1000-2000
-      Serial.print("Setting initial values to roll, pitch, yaw, throttle.");
-      Serial.println("");
       roll.write(1500);      // initialize center
-      pitch.write(1515);     // initialize center
+      pitch.write(1500);     // initialize center
       yaw.write(1500);       // initialize center
-      throttle.write(1000);  // initialize minimum throttle
-      delay(2000);
-      
-      // unlocking motors
-      Serial.print("Unlocking motors now.");
-      Serial.println("");
-      aux2.write(1900);   // turn aux2 (motor lock) off with 1900
-      delay(2000);
+      delay(1000);
+      throttle.write(1000);  // minimum throttle
       
       startupProc = false;
     }
     
     if(testProc == true)
     {
-      Serial.print("Starting test procedure.");
-      Serial.println("");
       // test values
-      throttle.write(1000);  // minimum throttle
       delay(2000);
-      throttle.write(1800);  // 80% throttle
-      delay(8000);
-      // landing
-      Serial.print("Starting landing procedures.");
-      Serial.println("");
-      // slowly decrease throttle by 4%/sec to land
-      for(int newVal = 1800; newVal>1400; newVal-=10)
-      {
-        throttle.write(newVal);
-        delay(250);
-      }
-     
-      delay(2000);
-      Serial.print("Test ending. Minimum throttle.");
-      Serial.println("");
+      throttle.write(1250);  // 25% throttle
+      delay(1000);    
+      throttle.write(1500);  // 50% throttle
+      delay(1000);    
+      throttle.write(1750);  // 75% throttle
+      delay(1000);    
+      //throttle.write(2000);  // 100% throttle
+      //delay(1000);
+      throttle.write(1600);  // 60% throttle
+      delay(1000);
+      roll.write(1350);      // roll left
+      delay(400);
+      roll.write(1500);      // center
+      delay(400);
+      roll.write(1650);      // roll right
+      delay(400);
+      roll.write(1500);      // center
+      delay(1000);
+      pitch.write(1350);     // pitch back
+      delay(400);
+      roll.write(1500);      // center
+      delay(500);
+      pitch.write(1650);     // pitch forward
+      delay(400);
+      pitch.write(1500);     // center
+      delay(1000);
+      yaw.write(1350);       // spin left
+      delay(400);
+      roll.write(1500);      // center
+      delay(400);
+      yaw.write(1650);       // spin right
+      delay(400);
+      yaw.write(1500);       // center
+      delay(1000);
       throttle.write(1000);  // minimum throttle
-
+    
       testProc = false;
     }
   }
@@ -171,8 +176,8 @@ void loop()
   if(currentMillis - previousMillis >= interval)
   {
     // Display data counter
-    //Serial.print(cpt++,DEC);
-    //Serial.print("\t");
+    Serial.print (cpt++,DEC);
+    Serial.print ("\t");
    
     // Read accelerometer and gyroscope
     uint8_t Buf[14];
@@ -195,29 +200,32 @@ void loop()
     // Display values
     
     // Accelerometer
-    //Serial.print("aX\t");
-    //Serial.print(ax,DEC); 
-    //Serial.print("\t");
-    //Serial.print("aY\t");
-    //Serial.print(ay,DEC);
-    //Serial.print("\t");
-    //Serial.print("aZ\t");
-    //Serial.print(az,DEC);  
-    //Serial.print("\t");
+    Serial.print ("aX\t");
+    Serial.print (ax,DEC); 
+    Serial.print ("\t");
+    Serial.print ("aY\t");
+    Serial.print (ay,DEC);
+    Serial.print ("\t");
+    Serial.print ("aZ\t");
+    Serial.print (az,DEC);  
+    Serial.print ("\t");
    
     // Gyroscope
-    //Serial.print("gX\t");
-    //Serial.print(gx,DEC); 
-    //Serial.print("\t");
-    //Serial.print("gY\t");
-    //Serial.print(gy,DEC);
-    //Serial.print("\t");
-    //Serial.print("gZ\t");
-    //Serial.print(gz,DEC);  
-    //Serial.print("\t");
+    Serial.print ("gX\t");
+    Serial.print (gx,DEC); 
+    Serial.print ("\t");
+    Serial.print ("gY\t");
+    Serial.print (gy,DEC);
+    Serial.print ("\t");
+    Serial.print ("gZ\t");
+    Serial.print (gz,DEC);  
+    Serial.print ("\t");
   
     // End of line
-    //Serial.println("");
+    Serial.println("");
+    
+    // update previousMillis
+    previousMillis = currentMillis;
   }
   
   // code that constantly runs after interval goes here 

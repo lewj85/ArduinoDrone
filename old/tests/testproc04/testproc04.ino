@@ -1,8 +1,8 @@
-// Test Procedures 1
+// Test Procedures 4
 // by Jesse Lew
 
-// Notes: It is turning but test values were too short. Back/forward
-// pitch is reversed. 1501-2000 is forward, 1000-1499 is back.
+// Notes: Kept pitch tests. 60% throttle was barely enough to
+// get it airborne last time so trying different 60+% values.
 
 #include <Servo.h> 
 #include <Wire.h> 
@@ -124,36 +124,29 @@ void loop()
     {
       // test values
       delay(2000);
-      throttle.write(1250);  // 25% throttle
-      delay(1000);    
-      throttle.write(1500);  // 50% throttle
-      delay(1000);    
-      throttle.write(1750);  // 75% throttle
-      delay(1000);    
-      //throttle.write(2000);  // 100% throttle
-      //delay(1000);
-      throttle.write(1500);  // 50% throttle
-      delay(1000);
-      roll.write(1400);      // roll left
-      delay(250);
-      roll.write(1600);      // roll right
-      delay(250);
-      roll.write(1500);      // center
-      delay(1000);
-      pitch.write(1400);     // pitch forward (went back)
-      delay(250);
-      pitch.write(1600);     // pitch back (went forward)
-      delay(250);
-      pitch.write(1500);     // center
-      delay(1000);
-      yaw.write(1400);       // spin left
-      delay(250);
-      yaw.write(1600);       // spin right
-      delay(250);
-      yaw.write(1500);       // center
-      delay(1000);
       throttle.write(1000);  // minimum throttle
-    
+      delay(2000);
+      throttle.write(1620);  // 62% throttle
+      delay(2000);
+      throttle.write(1000);  // minimum throttle
+      delay(2000);
+      throttle.write(1650);  // 65% throttle
+      delay(2000);
+      throttle.write(1000);  // minimum throttle
+      delay(2000);
+      throttle.write(1680);  // 68% throttle
+      delay(2000);
+      pitch.write(1350);     // tilt back
+      delay(2000);
+      pitch.write(1500);     // center
+      delay(2000);
+      pitch.write(1650);     // tilt forward
+      delay(2000);
+      pitch.write(1500);     // center
+
+      delay(2000);
+      throttle.write(1000);  // minimum throttle
+
       testProc = false;
     }
   }
@@ -217,6 +210,9 @@ void loop()
   
     // End of line
     Serial.println("");
+    
+    // update previousMillis
+    previousMillis = currentMillis;
   }
   
   // code that constantly runs after interval goes here 

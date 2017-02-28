@@ -1,8 +1,11 @@
-// Test Procedures 3
+// Test Procedures 6
 // by Jesse Lew
 
-// Notes: Pitch stayed back too long in last test. Testing pitch
-// again. Also, testing minimum throttle for flight. 45-60%.
+// Notes: ~63% throttle appears to stabilize altitude. ~65% 
+// lifts it fast, try 64%. 61% lowers it fast. Try 62%. Center 
+// of gravity is pulling it back at 1500, forward at 1515, and
+// slightly right at 1500. Try pitch.write(1513) and 
+// roll.write(1495).
 
 #include <Servo.h> 
 #include <Wire.h> 
@@ -112,10 +115,11 @@ void loop()
       // acceptable values: 885-2115, 
       // keeping between 1000-2000
       roll.write(1500);      // initialize center
-      pitch.write(1500);     // initialize center
+      pitch.write(1515);     // initialize center
       yaw.write(1500);       // initialize center
       delay(1000);
       throttle.write(1000);  // minimum throttle
+      delay(1000);
       
       startupProc = false;
     }
@@ -123,30 +127,19 @@ void loop()
     if(testProc == true)
     {
       // test values
-      delay(3000);
-      throttle.write(1450);  // 45% throttle
-      delay(3000);
+      delay(2000);
       throttle.write(1000);  // minimum throttle
-      delay(3000);
-      throttle.write(1500);  // 50% throttle
-      delay(3000);
-      throttle.write(1000);  // minimum throttle
-      delay(3000);
-      throttle.write(1550);  // 55% throttle
-      delay(3000);
-      throttle.write(1000);  // minimum throttle
-      delay(3000);
-      throttle.write(1600);  // 60% throttle
-      delay(3000);
-      pitch.write(1400);     // tilt back
-      delay(3000);
-      pitch.write(1500);     // center
-      delay(3000);
-      pitch.write(1600);     // tilt forward
-      delay(3000);
-      pitch.write(1500);     // center
-      delay(3000);
-      
+      delay(2000);
+      throttle.write(1650);  // 65% throttle
+      delay(4000);
+      throttle.write(1610);  // 61% throttle
+      delay(1000);
+      throttle.write(1630);  // 63% throttle
+      delay(4000);
+      throttle.write(1610);  // 61% throttle
+      delay(2000);
+
+      delay(1000);
       throttle.write(1000);  // minimum throttle
 
       testProc = false;
@@ -212,6 +205,9 @@ void loop()
   
     // End of line
     Serial.println("");
+    
+    // update previousMillis
+    previousMillis = currentMillis;
   }
   
   // code that constantly runs after interval goes here 

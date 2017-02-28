@@ -1,8 +1,8 @@
-// Test Procedures 2
+// Test Procedures 1
 // by Jesse Lew
 
-// Notes: More clear now. Upped throttle to 60% to attempt flight.
-// Pitch getting stuck on back? Next test will investigate.
+// Notes: It is turning but test values were too short. Back/forward
+// pitch is reversed. 1501-2000 is forward, 1000-1499 is back.
 
 #include <Servo.h> 
 #include <Wire.h> 
@@ -132,30 +132,24 @@ void loop()
       delay(1000);    
       //throttle.write(2000);  // 100% throttle
       //delay(1000);
-      throttle.write(1600);  // 60% throttle
+      throttle.write(1500);  // 50% throttle
       delay(1000);
-      roll.write(1350);      // roll left
-      delay(400);
-      roll.write(1500);      // center
-      delay(400);
-      roll.write(1650);      // roll right
-      delay(400);
+      roll.write(1400);      // roll left
+      delay(250);
+      roll.write(1600);      // roll right
+      delay(250);
       roll.write(1500);      // center
       delay(1000);
-      pitch.write(1350);     // pitch back
-      delay(400);
-      roll.write(1500);      // center
-      delay(500);
-      pitch.write(1650);     // pitch forward
-      delay(400);
+      pitch.write(1400);     // pitch forward (went back)
+      delay(250);
+      pitch.write(1600);     // pitch back (went forward)
+      delay(250);
       pitch.write(1500);     // center
       delay(1000);
-      yaw.write(1350);       // spin left
-      delay(400);
-      roll.write(1500);      // center
-      delay(400);
-      yaw.write(1650);       // spin right
-      delay(400);
+      yaw.write(1400);       // spin left
+      delay(250);
+      yaw.write(1600);       // spin right
+      delay(250);
       yaw.write(1500);       // center
       delay(1000);
       throttle.write(1000);  // minimum throttle
@@ -223,6 +217,9 @@ void loop()
   
     // End of line
     Serial.println("");
+    
+    // update previousMillis
+    previousMillis = currentMillis;
   }
   
   // code that constantly runs after interval goes here 

@@ -1,8 +1,8 @@
-// Test Procedures 4
+// Test Procedures 3
 // by Jesse Lew
 
-// Notes: Kept pitch tests. 60% throttle was barely enough to
-// get it airborne last time so trying different 60+% values.
+// Notes: Pitch stayed back too long in last test. Testing pitch
+// again. Also, testing minimum throttle for flight. 45-60%.
 
 #include <Servo.h> 
 #include <Wire.h> 
@@ -123,28 +123,30 @@ void loop()
     if(testProc == true)
     {
       // test values
-      delay(2000);
+      delay(3000);
+      throttle.write(1450);  // 45% throttle
+      delay(3000);
       throttle.write(1000);  // minimum throttle
-      delay(2000);
-      throttle.write(1620);  // 62% throttle
-      delay(2000);
+      delay(3000);
+      throttle.write(1500);  // 50% throttle
+      delay(3000);
       throttle.write(1000);  // minimum throttle
-      delay(2000);
-      throttle.write(1650);  // 65% throttle
-      delay(2000);
+      delay(3000);
+      throttle.write(1550);  // 55% throttle
+      delay(3000);
       throttle.write(1000);  // minimum throttle
-      delay(2000);
-      throttle.write(1680);  // 68% throttle
-      delay(2000);
-      pitch.write(1350);     // tilt back
-      delay(2000);
+      delay(3000);
+      throttle.write(1600);  // 60% throttle
+      delay(3000);
+      pitch.write(1400);     // tilt back
+      delay(3000);
       pitch.write(1500);     // center
-      delay(2000);
-      pitch.write(1650);     // tilt forward
-      delay(2000);
+      delay(3000);
+      pitch.write(1600);     // tilt forward
+      delay(3000);
       pitch.write(1500);     // center
-
-      delay(2000);
+      delay(3000);
+      
       throttle.write(1000);  // minimum throttle
 
       testProc = false;
@@ -210,6 +212,9 @@ void loop()
   
     // End of line
     Serial.println("");
+    
+    // update previousMillis
+    previousMillis = currentMillis;
   }
   
   // code that constantly runs after interval goes here 
